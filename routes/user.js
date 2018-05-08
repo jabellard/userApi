@@ -1,41 +1,60 @@
-var require("express");
+var express = require("express");
 var jwt = require("jsonwebtoken");
 var userModel = require("../models/user");
 var secretKey = require("../config/keys").secretKey;
 
 var authorize = function(req, res, next){
   var authHeader = req.get("authorization");
-    if (!authHeader) {
+  if (!authHeader) {
+    res.status(401);
+    res.json({
+      message: "Unauthorized."
+    });
+    res.end();
+  }
+  else {
+    var authHeaderArr = authHeader.split(" ");
+    if(token.length != 2)
+    {
       res.status(401);
       res.json({
         message: "Unauthorized."
       });
       res.end();
     }
-    else {
-      var authHeaderArr = authHeader.split(" ");
-      if(token.length != 2)
-      {
-        res.status(401);
-        res.json({
-          message: "Unauthorized."
-        });
-        res.end();
-      }
-      else{
-        var token = authHeaderArr[1];
-        jwt.verify(token, secretKey, function(err, payload){
-          if (err) {
-            res.status(401);
-            res.json({
-              message: "Unauthorized."
-            });
-            res.end();
+    else{
+      var token = authHeaderArr[1];
+      jwt.verify(token, secretKey, function(err, payload){
+        if (err) {
+          res.status(401);
+          res.json({
+            message: "Unauthorized."
+          });
+          res.end();
+        }
+        else {
+          if (req.__admin) {
+            if (payload.admin) {
+              next();
+            }
+            else {
+              res.status(401);
+              res.json({
+                message: "Unauthorized."
+              });
+              res.end();
+            }
           }
           else {
-            if (req.__admin) {
-              if (payload.admin) {
-                next();
+            if (payload.admin) {
+              next()
+            }
+            else {
+              if (req.__userName == payload.userName) {
+                if (req.__security && req.body && req.body.admin) {
+                  req.body.admin = undefined; //payload.admin;
+                  next();
+                }
               }
               else {
                 res.status(401);
@@ -45,31 +64,12 @@ var authorize = function(req, res, next){
                 res.end();
               }
             }
-            else {
-              if (payload.admin) {
-                next()
-              }
-              else {
-                if (req.__userName == payload.userName) {
-                  if (req.__security && req.body && req.body.admin) {
-                    req.body.admin = undefined; //payload.admin;
-                    next();
-                  }
-                }
-                else {
-                  res.status(401);
-                  res.json({
-                    message: "Unauthorized."
-                  });
-                  res.end();
-                }
-              }
-            }
-
           }
+
         }
-      }
+      });
     }
+  }
 }
 
 var userRouter = exports.userRouter = express.Router();

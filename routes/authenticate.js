@@ -87,6 +87,6 @@ var authenticate = function(req, res){
   });
 }
 
-var authenticateRouter = exports.authnticateRouter = express.Router();
+var authenticateRouter = exports.authenticateRouter = express.Router();
 authenticateRouter.route("/")
   .post(authenticate);

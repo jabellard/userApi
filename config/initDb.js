@@ -1,5 +1,6 @@
 var mongoose = require("mongoose");
 var user = require("../models/user");
+var Contact = require("../models/contact").Contact;
 var bcrypt = require("bcrypt-nodejs");
 
 mongoose.connect("mongodb://localhost:27017/user");
@@ -7,9 +8,9 @@ mongoose.connect("mongodb://localhost:27017/user");
 var userDb = mongoose.connection;
 
 var collectionNames = [user.collectionName];
-var User = user.User;
-var NUM_USERS = 20;
-var NUM_CONTACTS = 10;
+var User = user.User
+var NUM_USERS = 3;
+var NUM_CONTACTS = 3;
 
 userDb.on("error", function(){
   console.log("failed to connect to user database");
@@ -54,12 +55,18 @@ for(var j = 0; j < NUM_USERS; j++){
     admin = true;
   }
   var contacts = [];
+  var contacts2 = [];
   for (var i = 0; i < NUM_CONTACTS; i++) {
-    var contact = {
+    var contact = new Contact ({
       name: userName + "_contact" + i,
       phoneNumber: randomNumberK(10),
       email: userName + "_email" + i + "@mail.com"
-    }
+    });
+    contact.validate(function(err){
+      if (err) {
+        console.log("Invalid contact document");
+      }
+    });
     contacts.push(contact);
   }
 
@@ -69,12 +76,14 @@ for(var j = 0; j < NUM_USERS; j++){
     userName: userName,
     passWord: hashed_passWord,
     admin: admin,
-    contacts: contacts
+    contacts:[]
   });
 
   userk.validate(function(err){
     if (err) {
       console.log("Invalid user document");
+      console.log(err);
+      process.exit(1);
     }
     else{
       user.save(function(err){
@@ -86,6 +95,7 @@ for(var j = 0; j < NUM_USERS; j++){
         }
       });
     }
+  });
 }
 
 //mongoose.disconnect();

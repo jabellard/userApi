@@ -7,40 +7,40 @@ var userSchema = mongoose.Schema({
   firstName: {
     required: true,
     unique: false,
-    type: String,
+    formType: String,
     minLength: 1
   },
   lastName: {
     required: true,
     unique: false,
-    type: String,
+    formType: String,
     minLength: 1
   },
   userName: {
     required: true,
     unique: true,
-    type: String,
+    formType: String,
     minLength: 1
   },
   passWord: {
     required: true,
     unique: false,
-    type: String,
+    formType: String,
     minLength: 1
-  }
+  },
   admin: {
     required: true,
     unique: false,
-    type: Boolean
+    formType: Boolean
   },
   contacts: {
     required: true,
     unique: false,
-    type: [contact.contactShema]
+    formType: [contact.contactShema]
   }
 }, {collection: collectionName});
 
-var User = mongoose.model("User", userSchema);
+var User = exports.User = mongoose.model("User", userSchema);
 
 var toUser = function(obj){
   if(!obj){
@@ -62,7 +62,7 @@ var toUser = function(obj){
     contacts: obj.contacts
   });
 }
-var getAllUsers = function(req, res){
+var getAllUsers = exports.getAllUsers = function(req, res){
   User.find({}, {_id: false, __v: false}, function(err, users){
     if (err) {
       console.log(err);
@@ -82,7 +82,7 @@ var getAllUsers = function(req, res){
   });
 }
 
-var getUserByuserName = function(req, res){
+var getUserByuserName = exports.getUserByuserName = function(req, res){
   User.findOne({userName: req.__userName}, {_id: false, __v: false}, function(err, user){
     if (err) {
       console.log(err);
@@ -111,7 +111,7 @@ var getUserByuserName = function(req, res){
   });
 }
 
-var getUserContacts = function(req, res){
+var getUserContacts = exports.getUserContacts = function(req, res){
   User.findOne({userName: req.__userName}, {_id: false, __v: false}, function(err, user){
     if (err) {
       console.log(err);
@@ -136,10 +136,11 @@ var getUserContacts = function(req, res){
         });
         res.end();
       }
+    }
   });
 }
 
-var getUserContactByName = function(req, res){
+var getUserContactByName = exports.getUserContactByName = function(req, res){
   User.findOne({userName: req.__userName}, {_id: false, __v: false}, function(err, user){
     if (err) {
       console.log(err);
@@ -169,7 +170,7 @@ var getUserContactByName = function(req, res){
         else {
           res.status(200);
           res.json({
-            contact: user.contacts[found];
+            contact: user.contacts[found]
           });
           res.end();
         }
@@ -201,7 +202,7 @@ var createUser = exports.createUser = function(req, res){
         if(err){
           console.log(err);
           var query = {
-            userName: user.userName;
+            userName: user.userName
           };
           User.findOne(query, function(err, user){
             if (err) {
@@ -242,7 +243,7 @@ var createUser = exports.createUser = function(req, res){
   });
 }
 
-var createUserContact = function(req, res){
+var createUserContact = exports.createUserContact = function(req, res){
   var contact = contact.toContact(req.body);
   contact.validate(function(err){
     if (err) {
@@ -344,7 +345,7 @@ var _updateUser = function(user, obj){
   }
 }
 
-var updateUser = function(req, res){
+var updateUser = exports.updateUser = function(req, res){
   User.findOne({userName: req.__userName}, {_id: false, __v: false}, function(err, user){
     if (err) {
       console.log(err);
@@ -408,7 +409,7 @@ var updateUser = function(req, res){
   });
 }
 
-var updateUserContact = function(req, res){
+var updateUserContact = exports.updateUserContact = function(req, res){
   var contact = contact.toContact(req.body);
   contact.validate(function(err){
     if (err) {
@@ -498,9 +499,10 @@ var updateUserContact = function(req, res){
         }
       });
     }
+  });
 }
 
-var deleteUser = function(req, res){
+var deleteUser = exports.deleteUser = function(req, res){
   User.findOne(req.__userName, function(err, user){
       if (err) {
         console.log(err);
@@ -541,61 +543,61 @@ var deleteUser = function(req, res){
     });
 }
 
-var deleteUserContact = function(req, res){
+var deleteUserContact = exports.deleteUserContact = function(req, res){
   User.findOne(req.__userName, function(err, user){
-      if (err) {
-        console.log(err);
-        res.status(500);
-        res.json({
-          message: "Internal Server Error."
-        });
-        res.end();
-      }
-      else {
-        if (user) {
-          var found = -1;
-          for (var i = 0; i < user.contacts.length; i++) {
-            var contact = user.contacts[i];
-            if (contact.name == req.__contactName) {
-              found = i;
-              break;
-            }
-          }
-          if(found == -1){
-            res.status(400);
-            res.json({
-              message: "Bad Request: Contact with name " + req.__contactName + " does not exist."
-            });
-            res.end();
-          }
-          else {
-            user.contacts.slice(found, 1);
-            user.save(function(err){
-              if (err) {
-                console.log(err);
-                res.status(500);
-                res.json({
-                  message: "Internal Sever Error."
-                });
-                res.end();
-              }
-              else {
-                res.status(200);
-                res.json({
-                  message: "Removed contact 99ith name " + req.__contactName + "."
-                });
-                res.end();
-              }
-            });
+    if (err) {
+      console.log(err);
+      res.status(500);
+      res.json({
+        message: "Internal Server Error."
+      });
+      res.end();
+    }
+    else {
+      if (user) {
+        var found = -1;
+        for (var i = 0; i < user.contacts.length; i++) {
+          var contact = user.contacts[i];
+          if (contact.name == req.__contactName) {
+            found = i;
+            break;
           }
         }
-        else{
+        if(found == -1){
           res.status(400);
           res.json({
-            message: "userument with ID " + req._id + " does not exist."
+            message: "Bad Request: Contact with name " + req.__contactName + " does not exist."
           });
           res.end();
         }
+        else {
+          user.contacts.slice(found, 1);
+          user.save(function(err){
+            if (err) {
+              console.log(err);
+              res.status(500);
+              res.json({
+                message: "Internal Sever Error."
+              });
+              res.end();
+            }
+            else {
+              res.status(200);
+              res.json({
+                message: "Removed contact 99ith name " + req.__contactName + "."
+              });
+              res.end();
+            }
+          });
+        }
       }
-    });
+      else {
+        res.status(400);
+        res.json({
+          message: "userument with ID " + req._id + " does not exist."
+        });
+        res.end();
+      }
+    }
+  });
 }

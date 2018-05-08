@@ -1,16 +1,16 @@
 var mongoose = require("mongoose");
 
-var contactSchema = exports.contactSchema = mongoose.Shema({
+var contactSchema = exports.contactSchema = mongoose.Schema({
   name: {
     required: true,
     unique: true,
-    type: String,
+    formType: String,
     minLength: 1
   },
   phoneNumber: {
     required: false,
     unique: false,
-    type: Number,
+    formType: Number,
     validate: function(v){
       var str = v.toString()
       var phoneNumberNumberPattern = /^\d{10}$/; ///\d{3}\d{3}\d{4}/;
@@ -20,7 +20,7 @@ var contactSchema = exports.contactSchema = mongoose.Shema({
   email: {
     required: false,
     unique: false,
-    type: String,
+    formType: String,
     validate: function(v){
       var emailPattern = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
       return emailPattern.test(v);
@@ -28,7 +28,7 @@ var contactSchema = exports.contactSchema = mongoose.Shema({
   }
 });
 
-var Contact = exports.Contact = mongoose.model("Contact", contactShema);
+var Contact = exports.Contact = mongoose.model("Contact", contactSchema);
 
 var toContact = function(obj){
   if (!obj) {

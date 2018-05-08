@@ -2,22 +2,22 @@ var http = require("http");
 var express = require("express");
 var bodyParser = require("body-parser");
 var mongoose = require("mongoose");
-var registerRouter = require("./routes/register");
-var authenticateRouter = require("./routes/authenticate");
-var userRouter = require("./routes/user");
-var docsRouter = require("./routes/docs");
+var registerRouter = require("./routes/register").registerRouter;
+var authenticateRouter = require("./routes/authenticate").authenticateRouter;
+var userRouter = require("./routes/user").userRouter;
+var docsRouter = require("./routes/docs").docsRouter;
 var collectionName = require("./models/user").collectionName;
 
 var app = exports.app = express();
 
-app.set("port", process.env.PORT || 3000);
+app.set("port", process.env.PORT || 3001);
 
 mongoose.connect("mongodb://localhost:27017/" + collectionName);
 var userDb = mongoose.connection;
 userDb.on("error", function(){
   console.log("Failed to connect to the " + collectionName + " database");
 });
-profileDb.on("open", function(){
+userDb.on("open", function(){
   console.log("Connected to the " + collectionName + " database");
 
   if(!userDb.collections[collectionName]){
