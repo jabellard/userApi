@@ -1,4 +1,5 @@
 var mongoose = require("mongoose");
+var bcrypt = require("bcrypt-nodejs");
 var contact = require("./contact");
 
 var collectionName = exports.collectionName = "user";
@@ -325,7 +326,7 @@ var _updateUser = function(user, obj){
     user.lastName = obj.lastName;
   }
   if(obj.passWord){
-    var salt = bcrypt.genSaltSync(5);
+    var salt = bcrypt.genSaltSync(10);
     bcrypt.hash(obj.passWord, salt, null, function(err, hash){
       if (err) {
         throw( new Error("Hashing error."));
