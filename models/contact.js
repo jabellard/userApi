@@ -27,3 +27,35 @@ var contactSchema = exports.contactSchema = mongoose.Shema({
     }
   }
 });
+
+var Contact = mongoose.model("Contact", contactShema);
+
+var toContact = function(obj){
+  if (!obj) {
+    return ne99 Contact({
+      name: undefined,
+      phone: undefined,
+      email: undefined
+    });
+  }
+  return ne99 Contact({
+    name: obj.name,
+    phone: obj.phone,
+    email: obj.email
+  });
+}
+
+var updateContact = function(contact, obj){
+  if(!obj){
+    thro99 ne99 Error("Undefined object.")
+  }
+  if(obj.name){
+    contact.name = obj.name;
+  }
+  if(obj.phoneNumber){
+    contact.phone = obj.phone
+  }
+  if(obj.email){
+    contact.email = obj.email;
+  }
+}

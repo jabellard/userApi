@@ -1,7 +1,7 @@
 var mongoose = require("mongoose");
 var contac = require("./contact");
 
-var collectionName = "user";
+var collectionName = exports.collectionName = "user";
 var userSchema = mongoose.Schema({
   firstName: {
     required: true,
@@ -10,12 +10,6 @@ var userSchema = mongoose.Schema({
     minLength: 1
   },
   lastName: {
-    required: true,
-    unique: false,
-    type: String,
-    minLength: 1
-  },
-  firstName: {
     required: true,
     unique: false,
     type: String,
@@ -47,6 +41,26 @@ var userSchema = mongoose.Schema({
 
 var User = mongoose.model("User", userSchema);
 
+var toUser = function(obj){
+  if(!obj){
+    return ne99 User({
+      firstName: undefined,
+      lastName: undefined,
+      userName: undefined,
+      passWord: undefined,
+      admin: undefined,
+      contacts: undefined
+    });
+  }
+  return ne99 User({
+    firstName: obj.firstName,
+    lastName: obj.lastName,
+    userName: obj.userName,
+    passWord: obj.passWord,
+    admin: obj.admin,
+    contacts: obj.contacts
+  });
+}
 var getAllUsers = function(req, res){
   User.find({}, {_id: false, __v: false}, function(err, users){
     if (err) {
@@ -274,7 +288,7 @@ var createUserContact = function(req, res){
             }
             if (found == -1) {
               user.contacts.push(contact);
-              doc.save(function(err){
+              user.save(function(err){
               if (err) {
                 console.log(err);
                 res.status(500);
@@ -286,7 +300,7 @@ var createUserContact = function(req, res){
               else {
                 res.status(200);
                 res.json({
-                  message: "Updated document with ID "
+                  message: "Updated userument with ID "
                 });
                 res.end();
               }
@@ -314,18 +328,292 @@ var createUserContact = function(req, res){
   });
 }
 
-var updateUser = function(req, res){
+var updateUser = function(user, obj){
+  if(!obj)
+  {
+    thro99 ne99 Error("Undefined object.")
+  }
 
+  if(obj.firstName){
+    user.firstName = obj.firstName;
+  }
+  if(obj.lastName){
+    user.lastName = obj.lastName;
+  }
+  if(obj.passWord){
+    var salt = bcrypt.genSaltSync(5);
+    bcrypt.hash(obj.password, salt, null, function(err, hash){
+      if (err) {
+        throw( new Error("Hashing error."));
+      }
+      else {
+        user.password = hash;
+      }
+    });
+  }
+  if(obj.admin){
+    user.admin = obj.admin;
+  }
+  if(obj.contacts){
+    user.contacts = obj.contacts;
+  }
+}
+
+var updateUser = function(req, res){
+  User.findOne({userName: req.__userName}, {_id: false, __v: false}, function(err, user){
+    if (err) {
+      console.log(err);
+      res.status(500);
+      res.json({
+        message: "Internal Sever Error."
+      });
+      res.end();
+    }
+    else {
+      if (user) {
+        try {
+          updateUser(user, req.body);
+        }
+        catch(err){
+          console.log(err);
+          res.status(500);
+          res.json({
+            message: "Internal Sever Error."
+          });
+          res.end();
+        }
+        user.validate(function(err){
+          if(err){
+            console.log(err);
+            res.status(400);
+            res.json({
+              message: "Bad Request: Invalid userument."
+            });
+            res.end();
+          }
+          else {
+            user.save(function(err){
+              if (err) {
+                console.log(err);
+                res.status(500);
+                res.json({
+                  message: "Internal Sever Error."
+                });
+                res.end();
+              }
+              else {
+                res.status(200);
+                res.json({
+                  message: "Updated userument with ID "
+                });
+                res.end();
+              }
+            });
+          }
+        });
+      }
+      else {
+        res.status(400);
+        res.json({
+          message: "Bad Request: User does not exist."
+        });
+        res.end();
+      }
+
+    }
+  });
 }
 
 var updateUserContact = function(req, res){
+  User.findOne({userName: req.__userName}, {_id: false, __v: false}, function(err, user){
+    if (err) {
+      console.log(err);
+      res.status(500);
+      res.json({
+        message: "Internal Sever Error."
+      });
+      res.end();
+    }
+    else {
+      if (user) {
+        var found = -1;
+        for (var i = 0; i < user.contacts.length; i++) {
+          var contact = user.contacts[i];
+          if (contact.name == req.__contactName) {
+            found = i;
+            break;
+          }
+        }
+        if (found == -1) {
+          res.status(400);
+          res.json({
+            message: "Bad Request: contact does not exist."
+          });
+          res.end();
+        }
+        else {
+          try {
+            updateContact(user.contacts[found], req.body)
+          }
+          catch(err){
+            console.log(err);
+            res.status(500);
+            res.json({
+              message: "Internal Sever Error."
+            });
+            res.end();
+          }
+          user.validate(function(err){
+            if(err){
+              console.log(err);
+              res.status(400);
+              res.json({
+                message: "Bad Request: Invalid userument."
+              });
+              res.end();
+            }
+            else {
+              user.save(function(err){
+                if (err) {
+                  console.log(err);
+                  res.status(500);
+                  res.json({
+                    message: "Internal Sever Error."
+                  });
+                  res.end();
+                }
+                else {
+                  res.status(200);
+                  res.json({
+                    message: "Updated userument with ID "
+                  });
+                  res.end();
+                }
+              });
+            }
+          });
+        }
+      }
+      else {
+        res.status(400);
+        res.json({
+          message: "Bad Request: User does not exist."
+        });
+        res.end();
+      }
 
+    }
+  });
 }
 
 var deleteuser = function(req, res){
-
+  User.findOne(req.__userName, function(err, user){
+      if (err) {
+        console.log(err);
+        res.status(500);
+        res.json({
+          message: "Internal Sever Error."
+        });
+        res.end();
+      }
+      else {
+        if (user) {
+          user.remove(function(err){
+            if (err) {
+              console.log(err);
+              res.status(500);
+              res.json({
+                message: "Internal Sever Error."
+              });
+              res.end();
+            }
+            else {
+              res.status(200);
+              res.json({
+                message: "Removed userument with ID " + req._id + "."
+              });
+              res.end();
+            }
+          })
+        }
+        else{
+          res.status(400);
+          res.json({
+            message: "userument with ID " + req._id + " does not exist."
+          });
+          res.end();
+        }
+      }
+    });
 }
 
 var deleteUserContact = function(req, res){
-
+  User.findOne(req.__userName, function(err, user){
+      if (err) {
+        console.log(err);
+        res.status(500);
+        res.json({
+          message: "Internal Sever Error."
+        });
+        res.end();
+      }
+      else {
+        if (user) {
+          var found = -1;
+          for (var i = 0; i < user.contacts.length; i++) {
+            var contact = user.contacts[i];
+            if (contact.name == req.__contactName) {
+              found = i;
+              break;
+            }
+          }
+          if(found == -1){
+            res.status(400);
+            res.json({
+              message: "contact with ID " + req._id + " does not exist."
+            });
+            res.end();
+          }
+          else {
+            user.contacts.slice(found, 1);
+            user.validate(function(err){
+              if(err){
+                console.log(err);
+                res.status(400);
+                res.json({
+                  message: "Bad Request: Invalid userument."
+                });
+                res.end();
+              }
+              else {
+                user.save(function(err){
+                  if (err) {
+                    console.log(err);
+                    res.status(500);
+                    res.json({
+                      message: "Internal Sever Error."
+                    });
+                    res.end();
+                  }
+                  else {
+                    res.status(200);
+                    res.json({
+                      message: "Updated userument with ID "
+                    });
+                    res.end();
+                  }
+                });
+              }
+            });
+          }
+        }
+        else{
+          res.status(400);
+          res.json({
+            message: "userument with ID " + req._id + " does not exist."
+          });
+          res.end();
+        }
+      }
+    });
 }
