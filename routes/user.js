@@ -92,10 +92,10 @@ userRouter.route("/")
   })
   .get(authorize, userModel.getAllUsers)
   .post(function(req, res, next){
-    req.body.admin = false;
+    req.__admin = true;
     next();
   })
-  .post(userModel.createUser);
+  .post(authorize, userModel.createUser);
 
 userRouter.route("/:userName")
   .get(authorize, userModel.getUserByuserName)
