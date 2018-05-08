@@ -1,0 +1,10 @@
+#%RAML 1.0 DataType
+
+description: User result.
+displayName: UserResult
+type: object
+properties:
+  user:
+    required: true
+    type: !include ./user.raml
+example: !include ../examples/userResult.json

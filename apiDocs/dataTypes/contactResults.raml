@@ -1,0 +1,11 @@
+#%RAML 1.0 DataType
+
+description: Contact results.
+displayName: ContactResults
+type: object
+properties:
+  contacts:
+    required: true
+    type: array
+    items: !include ./contact.raml
+example: !include ../examples/contactResults.json

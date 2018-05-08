@@ -1,0 +1,31 @@
+#%RAML 1.0 DataType
+
+description: User.
+displayName: User
+type: object
+properties:
+  firstName:
+    required: true
+    type: string
+    minLength: 1
+  lastName:
+    required: true
+    type: string
+    minLength: 1
+  userName:
+    required: true,
+    unique: true,
+    type: string,
+    minLength: 1
+  passWord:
+    required: true,
+    type: string
+    minLength: 1
+  admin:
+    required: true,
+    type: boolean
+  contacts:
+    required: true
+    type: array
+    items: !include ./contact.raml
+example: !include ../examples/user.json

@@ -1,0 +1,26 @@
+#%RAML 1.0 DataType
+
+description: User update.
+displayName: UserUpdate
+type: object
+properties:
+  firstName:
+    required: false
+    type: string
+    minLength: 1
+  lastName:
+    required: false
+    type: string
+    minLength: 1
+  passWord:
+    required: false,
+    type: string
+    minLength: 1
+  admin:
+    required: false,
+    type: boolean
+  contacts:
+    required: false
+    type: array
+    items: !include ./contact.raml
+example: !include ../examples/userUpdate.json

@@ -1,0 +1,16 @@
+#%RAML 1.0 DataType
+
+description: User info.
+displayName: UserInfo
+type: object
+properties:
+  userName:
+    required: true,
+    unique: true,
+    type: string,
+    minLength: 1
+  passWord:
+    required: true,
+    type: string
+    minLength: 1
+example: !include ../examples/userInfo.json
