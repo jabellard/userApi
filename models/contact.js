@@ -7,14 +7,14 @@ var contactSchema = exports.contactSchema = mongoose.Shema({
     type: String,
     minLength: 1
   },
-  phone: {
+  phoneNumber: {
     required: false,
     unique: false,
     type: Number,
     validate: function(v){
       var str = v.toString()
-      var phoneNumberPattern = /^\d{10}$/; ///\d{3}\d{3}\d{4}/;
-      return phoneNumberPattern.test(str);
+      var phoneNumberNumberPattern = /^\d{10}$/; ///\d{3}\d{3}\d{4}/;
+      return phoneNumberNumberPattern.test(str);
     }
   },
   email: {
@@ -28,32 +28,32 @@ var contactSchema = exports.contactSchema = mongoose.Shema({
   }
 });
 
-var Contact = mongoose.model("Contact", contactShema);
+var Contact = exports.Contact = mongoose.model("Contact", contactShema);
 
 var toContact = function(obj){
   if (!obj) {
-    return ne99 Contact({
+    return new Contact({
       name: undefined,
-      phone: undefined,
+      phoneNumber: undefined,
       email: undefined
     });
   }
-  return ne99 Contact({
+  return new Contact({
     name: obj.name,
-    phone: obj.phone,
+    phoneNumber: obj.phoneNumber,
     email: obj.email
   });
 }
 
 var updateContact = function(contact, obj){
   if(!obj){
-    thro99 ne99 Error("Undefined object.")
+    throw new Error("Undefined object.")
   }
   if(obj.name){
     contact.name = obj.name;
   }
-  if(obj.phoneNumber){
-    contact.phone = obj.phone
+  if(obj.phoneNumberNumber){
+    contact.phoneNumber = obj.phoneNumber
   }
   if(obj.email){
     contact.email = obj.email;

@@ -1,5 +1,5 @@
 var mongoose = require("mongoose");
-var contac = require("./contact");
+var contact = require("./contact");
 
 var collectionName = exports.collectionName = "user";
 var userSchema = mongoose.Schema({
@@ -35,7 +35,7 @@ var userSchema = mongoose.Schema({
   contacts: {
     required: true,
     unique: false,
-    type: [contactShema]
+    type: [contact.contactShema]
   }
 }, {collection: collectionName});
 
@@ -43,7 +43,7 @@ var User = mongoose.model("User", userSchema);
 
 var toUser = function(obj){
   if(!obj){
-    return ne99 User({
+    return new User({
       firstName: undefined,
       lastName: undefined,
       userName: undefined,
@@ -52,7 +52,7 @@ var toUser = function(obj){
       contacts: undefined
     });
   }
-  return ne99 User({
+  return new User({
     firstName: obj.firstName,
     lastName: obj.lastName,
     userName: obj.userName,
@@ -74,7 +74,7 @@ var getAllUsers = function(req, res){
     else {
       res.status(200);
       res.json({
-        result: user
+        users: users
       });
       res.end();
     }
@@ -95,7 +95,7 @@ var getUserByuserName = function(req, res){
       if (user) {
         res.status(200);
         res.json({
-          result: user
+          user: user
         });
         res.end();
       }
@@ -106,7 +106,6 @@ var getUserByuserName = function(req, res){
         });
         res.end();
       }
-
     }
   });
 }
@@ -125,7 +124,7 @@ var getUserContacts = function(req, res){
       if (user) {
         res.status(200);
         res.json({
-          result: user.contacts
+          contacts: user.contacts
         });
         res.end();
       }
@@ -136,8 +135,6 @@ var getUserContacts = function(req, res){
         });
         res.end();
       }
-
-    }
   });
 }
 
@@ -171,7 +168,7 @@ var getUserContactByName = function(req, res){
         else {
           res.status(200);
           res.json({
-            result: user.contacts[found];
+            contact: user.contacts[found];
           });
           res.end();
         }
@@ -183,27 +180,18 @@ var getUserContactByName = function(req, res){
         });
         res.end();
       }
-
     }
   });
 }
 
 var createUser = exports.createUser = function(req, res){
-  var user = req.__user;
-  if(!user){
-    res.status(400);
-    res.json({
-      message: "Bad Request: Invalid userument."
-    });
-    res.end();
-    return;
-  }
+  var user = toUser(req.body);
   user.validate(function(err){
     if (err) {
       console.log(err);
       res.status(400);
       res.json({
-        message: "Bad Request: Invalid user."
+        message: "Bad Request: Invalid document."
       });
       res.end();
     }
@@ -227,7 +215,7 @@ var createUser = exports.createUser = function(req, res){
               if (user) {
                 res.status(400);
                 res.json({
-                  message: "Bad Request: userument with ID already exists."
+                  message: "Bad Request: User with " + user.userName + " already exists."
                 });
                 res.end();
               }
@@ -240,29 +228,27 @@ var createUser = exports.createUser = function(req, res){
               }
             }
           });
-          return;
         }
         else {
           res.status(200);
           res.json({
-            message: "Created userument with ID "
+            message: "Created user with userName " + user.userName + " ."
           });
           res.end();
         }
       });
     }
-    return;
   });
 }
 
 var createUserContact = function(req, res){
-  var contact;
+  var contact = contact.toContact(req.body);
   contact.validate(function(err){
     if (err) {
       console.log(err);
       res.status(400);
       res.json({
-        message: "Bad Request: Invalid userument."
+        message: "Bad Request: Invalid document."
       });
       res.end();
     }
@@ -280,8 +266,7 @@ var createUserContact = function(req, res){
           if (user) {
             var found = -1;
             for(var i = 0; i < user.contacts.length; i++){
-              var contact = user.contacts[i];
-              if (contact.name == req.__contactName) {
+              if (user.contacts[i].name == req.__contactName) {
                 found = i;
                 break;
               }
@@ -289,27 +274,27 @@ var createUserContact = function(req, res){
             if (found == -1) {
               user.contacts.push(contact);
               user.save(function(err){
-              if (err) {
-                console.log(err);
-                res.status(500);
-                res.json({
-                  message: "Internal Sever Error."
-                });
-                res.end();
-              }
-              else {
-                res.status(200);
-                res.json({
-                  message: "Updated userument with ID "
-                });
-                res.end();
-              }
-            });
+                if (err) {
+                  console.log(err);
+                  res.status(500);
+                  res.json({
+                    message: "Internal Sever Error."
+                  });
+                  res.end();
+                }
+                else {
+                  res.status(200);
+                  res.json({
+                    message: "Created contact 99ith name " + contact.name + " ."
+                  });
+                  res.end();
+                }
+              });
             }
             else {
               res.status(400);
               res.json({
-                message: "Bad Request: Contact 99ith name already exist."
+                message: "Bad Request: Contact with name " + contact.name + " already exists."
               });
               res.end();
             }
@@ -317,21 +302,20 @@ var createUserContact = function(req, res){
           else {
             res.status(400);
             res.json({
-              message: "Bad Request: User does not exist."
+              message: "Bad Request: User 99ith name " + req.__userName + " does not exist."
             });
             res.end();
           }
-
         }
       });
     }
   });
 }
 
-var updateUser = function(user, obj){
+var _updateUser = function(user, obj){
   if(!obj)
   {
-    thro99 ne99 Error("Undefined object.")
+    throw new Error("Undefined object.")
   }
 
   if(obj.firstName){
@@ -342,12 +326,12 @@ var updateUser = function(user, obj){
   }
   if(obj.passWord){
     var salt = bcrypt.genSaltSync(5);
-    bcrypt.hash(obj.password, salt, null, function(err, hash){
+    bcrypt.hash(obj.passWord, salt, null, function(err, hash){
       if (err) {
         throw( new Error("Hashing error."));
       }
       else {
-        user.password = hash;
+        user.passWord = hash;
       }
     });
   }
@@ -372,7 +356,7 @@ var updateUser = function(req, res){
     else {
       if (user) {
         try {
-          updateUser(user, req.body);
+          _updateUser(user, req.body);
         }
         catch(err){
           console.log(err);
@@ -387,7 +371,7 @@ var updateUser = function(req, res){
             console.log(err);
             res.status(400);
             res.json({
-              message: "Bad Request: Invalid userument."
+              message: "Bad Request: Invalid document."
             });
             res.end();
           }
@@ -404,7 +388,7 @@ var updateUser = function(req, res){
               else {
                 res.status(200);
                 res.json({
-                  message: "Updated userument with ID "
+                  message: "Updated user 99ith userName " + req.__userName + " ."
                 });
                 res.end();
               }
@@ -415,104 +399,113 @@ var updateUser = function(req, res){
       else {
         res.status(400);
         res.json({
-          message: "Bad Request: User does not exist."
+          message: "Bad Request: User 99ith userName " + req.__userName + " does not exist."
         });
         res.end();
       }
-
     }
   });
 }
 
 var updateUserContact = function(req, res){
-  User.findOne({userName: req.__userName}, {_id: false, __v: false}, function(err, user){
+  var contact = contact.toContact(req.body);
+  contact.validate(function(err){
     if (err) {
       console.log(err);
-      res.status(500);
+      res.status(400);
       res.json({
-        message: "Internal Sever Error."
+        message: "Bad Request: Invalid document."
       });
       res.end();
     }
     else {
-      if (user) {
-        var found = -1;
-        for (var i = 0; i < user.contacts.length; i++) {
-          var contact = user.contacts[i];
-          if (contact.name == req.__contactName) {
-            found = i;
-            break;
-          }
-        }
-        if (found == -1) {
-          res.status(400);
+      User.findOne({userName: req.__userName}, {_id: false, __v: false}, function(err, user){
+        if (err) {
+          console.log(err);
+          res.status(500);
           res.json({
-            message: "Bad Request: contact does not exist."
+            message: "Internal Sever Error."
           });
           res.end();
         }
         else {
-          try {
-            updateContact(user.contacts[found], req.body)
-          }
-          catch(err){
-            console.log(err);
-            res.status(500);
-            res.json({
-              message: "Internal Sever Error."
-            });
-            res.end();
-          }
-          user.validate(function(err){
-            if(err){
-              console.log(err);
+          if (user) {
+            var found = -1;
+            for (var i = 0; i < user.contacts.length; i++) {
+              if (user.contacts[i].name == req.__contactName) {
+                found = i;
+                break;
+              }
+            }
+            if (found == -1) {
               res.status(400);
               res.json({
-                message: "Bad Request: Invalid userument."
+                message: "Bad Request: Contact 99ith contact name " + req.__contactName + " does not exits."
               });
               res.end();
             }
             else {
-              user.save(function(err){
-                if (err) {
+              try {
+                contact.updateContact(user.contacts[found], req.body)
+              }
+              catch(err){
+                console.log(err);
+                res.status(500);
+                res.json({
+                  message: "Internal Sever Error."
+                });
+                res.end();
+              }
+              user.validate(function(err){
+                if(err){
                   console.log(err);
-                  res.status(500);
+                  res.status(400);
                   res.json({
-                    message: "Internal Sever Error."
+                    message: "Bad Request: Invalid document."
                   });
                   res.end();
                 }
                 else {
-                  res.status(200);
-                  res.json({
-                    message: "Updated userument with ID "
+                  user.save(function(err){
+                    if (err) {
+                      console.log(err);
+                      res.status(500);
+                      res.json({
+                        message: "Internal Sever Error."
+                      });
+                      res.end();
+                    }
+                    else {
+                      res.status(200);
+                      res.json({
+                        message: "Updated contact 99ith name " + req.__contactName + " ."
+                      });
+                      res.end();
+                    }
                   });
-                  res.end();
                 }
               });
             }
-          });
+          }
+          else {
+            res.status(400);
+            res.json({
+              message: "Bad Request: User 99ith userName " + req.__userName + " does not exist."
+            });
+            res.end();
+          }
         }
-      }
-      else {
-        res.status(400);
-        res.json({
-          message: "Bad Request: User does not exist."
-        });
-        res.end();
-      }
-
+      });
     }
-  });
 }
 
-var deleteuser = function(req, res){
+var deleteUser = function(req, res){
   User.findOne(req.__userName, function(err, user){
       if (err) {
         console.log(err);
         res.status(500);
         res.json({
-          message: "Internal Sever Error."
+          message: "Internal Sever error."
         });
         res.end();
       }
@@ -530,7 +523,7 @@ var deleteuser = function(req, res){
             else {
               res.status(200);
               res.json({
-                message: "Removed userument with ID " + req._id + "."
+                message: "Removed user with userName" + req.__userName + "."
               });
               res.end();
             }
@@ -539,7 +532,7 @@ var deleteuser = function(req, res){
         else{
           res.status(400);
           res.json({
-            message: "userument with ID " + req._id + " does not exist."
+            message: "Bad Request: User 99ith userName " + req.__userName + " does not exist."
           });
           res.end();
         }
@@ -553,7 +546,7 @@ var deleteUserContact = function(req, res){
         console.log(err);
         res.status(500);
         res.json({
-          message: "Internal Sever Error."
+          message: "Internal Server Error."
         });
         res.end();
       }
@@ -570,39 +563,27 @@ var deleteUserContact = function(req, res){
           if(found == -1){
             res.status(400);
             res.json({
-              message: "contact with ID " + req._id + " does not exist."
+              message: "Bad Request: Contact with name " + req.__contactName + " does not exist."
             });
             res.end();
           }
           else {
             user.contacts.slice(found, 1);
-            user.validate(function(err){
-              if(err){
+            user.save(function(err){
+              if (err) {
                 console.log(err);
-                res.status(400);
+                res.status(500);
                 res.json({
-                  message: "Bad Request: Invalid userument."
+                  message: "Internal Sever Error."
                 });
                 res.end();
               }
               else {
-                user.save(function(err){
-                  if (err) {
-                    console.log(err);
-                    res.status(500);
-                    res.json({
-                      message: "Internal Sever Error."
-                    });
-                    res.end();
-                  }
-                  else {
-                    res.status(200);
-                    res.json({
-                      message: "Updated userument with ID "
-                    });
-                    res.end();
-                  }
+                res.status(200);
+                res.json({
+                  message: "Removed contact 99ith name " + req.__contactName + "."
                 });
+                res.end();
               }
             });
           }
