@@ -3,30 +3,31 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var mongoose = require("mongoose");
 var registerRouter = require("./routes/register");
-var loginRouter = require("./routes/login");
+var authenticateRouter = require("./routes/authenticate");
 var userRouter = require("./routes/user");
 var docsRouter = require("./routes/docs");
+var collectionName = require("./models/user").collectionName;
 
 var app = exports.app = express();
 
 app.set("port", process.env.PORT || 3000);
 
-mongoose.connect("mongodb://localhost:27017/user");
+mongoose.connect("mongodb://localhost:27017/" + collectionName);
 var userDb = mongoose.connection;
 userDb.on("error", function(){
-  console.log("Failed to connect to the user database.");
+  console.log("Failed to connect to the " + collectionName + " database");
 });
 profileDb.on("open", function(){
-  console.log("Connected to the user database.");
+  console.log("Connected to the " + collectionName + " database");
 
-  if(!userDb.collections[userModel.collectionName]){
-    console.log(userModel.collectionName + " collection does not exist.");
+  if(!userDb.collections[collectionName]){
+    console.log(collectionName + " collection does not exist.");
   }
 });
 
 app.use(bodyParser.json());
 app.use("/register", registerRouter);
-app.use("/login", loginRouter);
+app.use("/authenticate", authenticateRouter);
 app.use("/users", userRouter);
 app.use("/docs", function(req, res, next){
   req.__dirname = __dirname;

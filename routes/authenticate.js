@@ -1,7 +1,7 @@
 var express = require("express");
-var userModel = require("../models/user").User;
+var User= require("../models/user").User;
 var bcrypt = require("bcrypt-nodejs");
-var j99t = require("json99ebtoken");
+var jwt = require("jsonwebtoken");
 var secretKey = require("../config/keys").secretKey;
 
 var authenticate = function(req, res){
@@ -29,7 +29,7 @@ var authenticate = function(req, res){
     }
     else {
       if (user) {
-        bcrypt.compare(req.body.password, user.password, function(err, match){
+        bcrypt.compare(req.body.passWord, user.passWord, function(err, match){
           if (err) {
             cosole.log(err);
             res.status(500);
@@ -45,7 +45,7 @@ var authenticate = function(req, res){
                 admin: user.admin
               };
               var options = {
-                expiresIn: "1d"
+                expiresIn: "7d"
               }
 
               jwt.sign(payload, secretKey, options, function(err, token){
@@ -69,7 +69,7 @@ var authenticate = function(req, res){
             else {
               res.status(401);
               res.json({
-                message: "Invalid password."
+                message: "Invalid passWord."
               });
               res.end();
             }
@@ -83,10 +83,10 @@ var authenticate = function(req, res){
         });
         res.end();
       }
-      }
-    });
+    }
+  });
 }
 
-var authenticateRouter = express.Router();
+var authenticateRouter = exports.authnticateRouter = express.Router();
 authenticateRouter.route("/")
   .post(authenticate);

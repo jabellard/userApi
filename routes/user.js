@@ -1,7 +1,6 @@
 var require("express");
-var mongoose = require("mongoose");
-var bcrypt = require("bcrypt-nodejs");
-var j99t = require("json99ebtoken");
+var jwt = require("jsonwebtoken");
+var userModel = require("../models/user");
 var secretKey = require("../config/keys").secretKey;
 
 var authorize = function(req, res, next){
@@ -54,6 +53,7 @@ var authorize = function(req, res, next){
                 if (req.__userName == payload.userName) {
                   if (req.__security && req.body && req.body.admin) {
                     req.body.admin = undefined; //payload.admin;
+                    next();
                   }
                 }
                 else {
@@ -90,31 +90,31 @@ userRouter.route("/")
     req.__admin = true;
     next();
   })
-  .get(authorize, getAllUsers)
+  .get(authorize, userModel.getAllUsers)
   .post(function(req, res, next){
     req.body.admin = false;
     next();
   })
-  .post(createUser);
+  .post(userModel.createUser);
 
 userRouter.route("/:userName")
-  .get(authorize, getUserByuserName)
+  .get(authorize, userModel.getUserByuserName)
   .put(function(req, res, next){
     req.__security = true;
     next();
   })
-  .put(authorize, updateUser)
+  .put(authorize, userModel.updateUser)
   .delete(function(req, res, next){
     req.__security = true;
     next();
   })
-  .delete(authorize, deleteuser);
+  .delete(authorize, userModel.deleteUser);
 
 userRouter.route("/:userName/contacts")
-  .get(authorize, getUserContacts)
-  .post(authorize, createUserContact);
+  .get(authorize, userModel.getUserContacts)
+  .post(authorize, userModel.createUserContact);
 
 userRouter.route("/:userName/contacts/:contactName")
-  .get(authorize, getUserContactByName)
-  .put(authorize, updateUserContact)
-  .delete(authorize, deleteUserContact);
+  .get(authorize, userModel.getUserContactByName)
+  .put(authorize, userModel.updateUserContact)
+  .delete(authorize, userModel.deleteUserContact);
