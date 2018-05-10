@@ -9,8 +9,8 @@ var userDb = mongoose.connection;
 
 var collectionNames = [user.collectionName];
 var User = user.User
-var NUM_USERS = 3;
-var NUM_CONTACTS = 3;
+var NUM_USERS = 30;
+var NUM_CONTACTS = 30;
 
 userDb.on("error", function(){
   console.log("failed to connect to user database");
@@ -43,6 +43,7 @@ function randomNumberK(k){
   return Math.floor(factor + Math.random() * (9 * factor));
 }
 
+// NOTE: Only last document gets saved successfully
 for(var j = 0; j < NUM_USERS; j++){
   var firstName = "firstName" + j;
   var lastName = "lastName" + j;
@@ -57,16 +58,11 @@ for(var j = 0; j < NUM_USERS; j++){
   var contacts = [];
   var contacts2 = [];
   for (var i = 0; i < NUM_CONTACTS; i++) {
-    var contact = new Contact ({
+    var contact = {
       name: userName + "_contact" + i,
       phoneNumber: randomNumberK(10),
       email: userName + "_email" + i + "@mail.com"
-    });
-    contact.validate(function(err){
-      if (err) {
-        console.log("Invalid contact document");
-      }
-    });
+    };
     contacts.push(contact);
   }
 
@@ -76,7 +72,7 @@ for(var j = 0; j < NUM_USERS; j++){
     userName: userName,
     passWord: hashed_passWord,
     admin: admin,
-    contacts:[]
+    contacts: contacts
   });
 
   userk.validate(function(err){
@@ -86,7 +82,7 @@ for(var j = 0; j < NUM_USERS; j++){
       process.exit(1);
     }
     else{
-      user.save(function(err){
+      userk.save(function(err){
         if(err){
           console.log("Failed to save user document");
         }

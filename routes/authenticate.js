@@ -63,6 +63,7 @@ var authenticate = function(req, res){
                     message: "Successfully authenticated.",
                     token: token
                   });
+                  res.end();
                 }
               });
             }

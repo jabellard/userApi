@@ -1,1 +1,1 @@
-exports.secreKey = "secret";
+exports.secretKey = "secret";

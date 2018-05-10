@@ -14,7 +14,7 @@ var authorize = function(req, res, next){
   }
   else {
     var authHeaderArr = authHeader.split(" ");
-    if(token.length != 2)
+    if(authHeaderArr.length != 2)
     {
       res.status(401);
       res.json({
@@ -53,8 +53,8 @@ var authorize = function(req, res, next){
               if (req.__userName == payload.userName) {
                 if (req.__security && req.body && req.body.admin) {
                   req.body.admin = undefined; //payload.admin;
-                  next();
                 }
+                next();
               }
               else {
                 res.status(401);
@@ -84,6 +84,7 @@ userRouter.param("contactName", function(req, res, next, contactName){
 userRouter.use(function(req, res, next){
   req.__admin = false;
   req.__security = false;
+  next();
 });
 userRouter.route("/")
   .get(function(req, res, next){

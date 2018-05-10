@@ -7,36 +7,62 @@ var userSchema = mongoose.Schema({
   firstName: {
     required: true,
     unique: false,
-    formType: String,
+    type: String,
     minLength: 1
   },
   lastName: {
     required: true,
     unique: false,
-    formType: String,
+    type: String,
     minLength: 1
   },
   userName: {
     required: true,
     unique: true,
-    formType: String,
+    type: String,
     minLength: 1
   },
   passWord: {
     required: true,
     unique: false,
-    formType: String,
+    type: String,
     minLength: 1
   },
   admin: {
     required: true,
     unique: false,
-    formType: Boolean
+    type: Boolean
   },
   contacts: {
     required: true,
     unique: false,
-    formType: [contact.contactShema]
+    type: [{
+      name: {
+        required: true,
+        unique: true,
+        type: String,
+        minLength: 1
+      },
+      phoneNumber: {
+        required: false,
+        unique: false,
+        type: Number,
+        validate: function(v){
+          var str = v.toString()
+          var phoneNumberNumberPattern = /^\d{10}$/; ///\d{3}\d{3}\d{4}/;
+          return phoneNumberNumberPattern.test(str);
+        }
+      },
+      email: {
+        required: false,
+        unique: false,
+        type: String,
+        validate: function(v){
+          var emailPattern = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+          return emailPattern.test(v);
+        }
+      }
+    }]
   }
 }, {collection: collectionName});
 
@@ -243,73 +269,81 @@ var createUser = exports.createUser = function(req, res){
   });
 }
 
+var toContact = function(obj){
+  if (!obj) {
+    return {
+      name: undefined,
+      phoneNumber: undefined,
+      email: undefined
+    };
+  }
+  return {
+    name: obj.name,
+    phoneNumber: obj.phoneNumber,
+    email: obj.email
+  };
+}
+
 var createUserContact = exports.createUserContact = function(req, res){
-  var contact = contact.toContact(req.body);
-  contact.validate(function(err){
+  var contact = toContact(req.body);
+  User.findOne({userName: req.__userName}, {_id: false, __v: false}, function(err, user){
     if (err) {
       console.log(err);
-      res.status(400);
+      res.status(500);
       res.json({
-        message: "Bad Request: Invalid document."
+        message: "Internal Sever Error."
       });
       res.end();
     }
     else {
-      User.findOne({userName: req.__userName}, {_id: false, __v: false}, function(err, user){
-        if (err) {
-          console.log(err);
-          res.status(500);
-          res.json({
-            message: "Internal Sever Error."
-          });
-          res.end();
+      if (user) {
+      console.log("================found user!!!1");
+        var found = -1;
+        for(var i = 0; i < user.contacts.length; i++){
+          if (user.contacts[i].name == req.__contactName) {
+            found = i;
+            break;
+          }
         }
-        else {
-          if (user) {
-            var found = -1;
-            for(var i = 0; i < user.contacts.length; i++){
-              if (user.contacts[i].name == req.__contactName) {
-                found = i;
-                break;
-              }
-            }
-            if (found == -1) {
-              user.contacts.push(contact);
-              user.save(function(err){
-                if (err) {
-                  console.log(err);
-                  res.status(500);
-                  res.json({
-                    message: "Internal Sever Error."
-                  });
-                  res.end();
-                }
-                else {
-                  res.status(200);
-                  res.json({
-                    message: "Created contact 99ith name " + contact.name + " ."
-                  });
-                  res.end();
-                }
-              });
-            }
-            else {
+        if (found == -1) {
+          console.log("================contact does not yet exist");
+          user.contacts.push(contact);
+          console.log("================added contact");
+          user.save(function(err){
+            if (err) {
+              console.log("failed to save=============");
+              console.log(err);
               res.status(400);
               res.json({
-                message: "Bad Request: Contact with name " + contact.name + " already exists."
+                message: "Bad Request: Invalid document."
               });
               res.end();
             }
-          }
-          else {
-            res.status(400);
-            res.json({
-              message: "Bad Request: User 99ith name " + req.__userName + " does not exist."
-            });
-            res.end();
-          }
+            else {
+              console.log("saved!!!!!!!!!!1");
+              res.status(200);
+              res.json({
+                message: "Created contact 99ith name " + contact.name + " ."
+              });
+              res.end();
+            }
+          });
         }
-      });
+        else {
+          res.status(400);
+          res.json({
+            message: "Bad Request: Contact with name " + contact.name + " already exists."
+          });
+          res.end();
+        }
+      }
+      else {
+        res.status(400);
+        res.json({
+          message: "Bad Request: User 99ith name " + req.__userName + " does not exist."
+        });
+        res.end();
+      }
     }
   });
 }
@@ -409,101 +443,104 @@ var updateUser = exports.updateUser = function(req, res){
   });
 }
 
+var updateContact = function(contact, obj){
+  if(!obj){
+    throw new Error("Undefined object.")
+  }
+  if(obj.name){
+    contact.name = obj.name;
+  }
+  if(obj.phoneNumberNumber){
+    contact.phoneNumber = obj.phoneNumber
+  }
+  if(obj.email){
+    contact.email = obj.email;
+  }
+}
+
 var updateUserContact = exports.updateUserContact = function(req, res){
-  var contact = contact.toContact(req.body);
-  contact.validate(function(err){
+  var contact = toContact(req.body);
+  User.findOne({userName: req.__userName}, {_id: false, __v: false}, function(err, user){
     if (err) {
       console.log(err);
-      res.status(400);
+      res.status(500);
       res.json({
-        message: "Bad Request: Invalid document."
+        message: "Internal Sever Error."
       });
       res.end();
     }
     else {
-      User.findOne({userName: req.__userName}, {_id: false, __v: false}, function(err, user){
-        if (err) {
-          console.log(err);
-          res.status(500);
+      if (user) {
+        var found = -1;
+        for (var i = 0; i < user.contacts.length; i++) {
+          if (user.contacts[i].name == req.__contactName) {
+            found = i;
+            break;
+          }
+        }
+        if (found == -1) {
+          res.status(400);
           res.json({
-            message: "Internal Sever Error."
+            message: "Bad Request: Contact 99ith contact name " + req.__contactName + " does not exits."
           });
           res.end();
         }
         else {
-          if (user) {
-            var found = -1;
-            for (var i = 0; i < user.contacts.length; i++) {
-              if (user.contacts[i].name == req.__contactName) {
-                found = i;
-                break;
-              }
-            }
-            if (found == -1) {
+          try {
+            updateContact(user.contacts[found], req.body)
+          }
+          catch(err){
+            console.log(err);
+            res.status(500);
+            res.json({
+              message: "Internal Sever Error."
+            });
+            res.end();
+          }
+          user.validate(function(err){
+            if(err){
+              console.log(err);
               res.status(400);
               res.json({
-                message: "Bad Request: Contact 99ith contact name " + req.__contactName + " does not exits."
+                message: "Bad Request: Invalid document."
               });
               res.end();
             }
             else {
-              try {
-                contact.updateContact(user.contacts[found], req.body)
-              }
-              catch(err){
-                console.log(err);
-                res.status(500);
-                res.json({
-                  message: "Internal Sever Error."
-                });
-                res.end();
-              }
-              user.validate(function(err){
-                if(err){
+              user.save(function(err){
+                if (err) {
                   console.log(err);
-                  res.status(400);
+                  res.status(500);
                   res.json({
-                    message: "Bad Request: Invalid document."
+                    message: "Internal Sever Error."
                   });
                   res.end();
                 }
                 else {
-                  user.save(function(err){
-                    if (err) {
-                      console.log(err);
-                      res.status(500);
-                      res.json({
-                        message: "Internal Sever Error."
-                      });
-                      res.end();
-                    }
-                    else {
-                      res.status(200);
-                      res.json({
-                        message: "Updated contact 99ith name " + req.__contactName + " ."
-                      });
-                      res.end();
-                    }
+                  res.status(200);
+                  res.json({
+                    message: "Updated contact 99ith name " + req.__contactName + " ."
                   });
+                  res.end();
                 }
               });
             }
-          }
-          else {
-            res.status(400);
-            res.json({
-              message: "Bad Request: User 99ith userName " + req.__userName + " does not exist."
-            });
-            res.end();
-          }
+          });
         }
-      });
+      }
+      else {
+        res.status(400);
+        res.json({
+          message: "Bad Request: User 99ith userName " + req.__userName + " does not exist."
+        });
+        res.end();
+      }
     }
   });
 }
 
 var deleteUser = exports.deleteUser = function(req, res){
-  User.findOne(req.__userName, function(err, user){
+  User.findOne({userName: req.__userName}, function(err, user){
       if (err) {
         console.log(err);
         res.status(500);
@@ -544,7 +581,7 @@ var deleteUser = exports.deleteUser = function(req, res){
 }
 
 var deleteUserContact = exports.deleteUserContact = function(req, res){
-  User.findOne(req.__userName, function(err, user){
+  User.findOne({userName: req.__userName}, function(err, user){
     if (err) {
       console.log(err);
       res.status(500);
