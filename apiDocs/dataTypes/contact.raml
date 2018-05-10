@@ -10,10 +10,10 @@ properties:
     minLength: 1
   phoneNumber:
     required: false
-    type: Number
-    pattern: /^\d{10}$/
+    type: string
+    pattern: ^\d{10}$
   email:
     required: false
     type: string
-    pattern: /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/
+    pattern: ^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$
 example: !include ../examples/contact.json

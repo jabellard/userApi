@@ -1,6 +1,6 @@
 #%RAML 1.0 DataType
 
-description: Contact Update.
+description: Contact update.
 displayName: ContactUpdate
 type: object
 properties:
@@ -10,10 +10,10 @@ properties:
     minLength: 1
   phoneNumber:
     required: false
-    type: Number
+    type: string
     pattern: /^\d{10}$/
   email:
     required: false
     type: string
-    pattern: /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/
+    pattern: ^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$
 example: !include ../examples/contactUpdate.json

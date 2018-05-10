@@ -1,5 +1,5 @@
 {
-  "result": {
+  "user": {
     "firstName": "sampleFirstName",
     "lastName": "sampleLastName",
     "userName": "sampleUserName",
@@ -8,7 +8,7 @@
     "contacts": [
       {
         "name": "sampleName",
-        "phoneNumber": 7777777777,
+        "phoneNumber": "7777777777",
         "email": "sampleEmail@email.com"
       }
     ]

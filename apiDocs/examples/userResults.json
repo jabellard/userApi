@@ -1,0 +1,18 @@
+{
+  "users": [
+    {
+      "firstName": "sampleFirstName",
+      "lastName": "sampleLastName",
+      "userName": "sampleUserName",
+      "passWord": "samplePassWord",
+      "admin": false,
+      "contacts": [
+        {
+          "name": "sampleName",
+          "phoneNumber": "7777777777",
+          "email": "sampleEmail@email.com"
+        }
+      ]
+    }
+  ]
+}

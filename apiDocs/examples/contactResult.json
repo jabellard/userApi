@@ -1,7 +1,7 @@
 {
   "contact": {
     "name": "sampleName",
-    "phoneNumber": 7777777777,
+    "phoneNumber": "7777777777",
     "email": "sampleEmail@email.com"
   }
 

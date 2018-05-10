@@ -2,7 +2,7 @@
   "contacts": [
     {
     "name": "sampleName1",
-    "phoneNumber": 7777777777,
+    "phoneNumber": "7777777777",
     "email": "sampleEmail1@email.com"
     }
   ]

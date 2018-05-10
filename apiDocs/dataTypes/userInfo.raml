@@ -5,12 +5,11 @@ displayName: UserInfo
 type: object
 properties:
   userName:
-    required: true,
-    unique: true,
-    type: string,
+    required: true
+    type: string
     minLength: 1
   passWord:
-    required: true,
+    required: true
     type: string
     minLength: 1
 example: !include ../examples/userInfo.json
